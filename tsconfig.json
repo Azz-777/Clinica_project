@@ -2,6 +2,12 @@
   "compilerOptions": {
     "module": "CommonJS",
     "esModuleInterop": true,
-    "target": "ES6"
-  }
+    "target": "ES6",
+    "rootDir": ".",
+    "outDir": "dist",
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "controllers/**/*.ts", "routes/**/*.ts"],
+  "exclude": ["node_modules", "dist", "frontend"]
 }

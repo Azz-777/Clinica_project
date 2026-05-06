@@ -9,6 +9,8 @@ export type Tab =
 	| 'auth'
 	| 'register'
 
+export type PanelRole = 'admin' | 'cashier'
+
 export type ApiEnvelope<T> = {
 	success: boolean
 	message?: string
@@ -85,4 +87,5 @@ export type ReportsData = {
 export type AuthUser = {
 	id: number
 	username: string
+	role?: PanelRole
 }

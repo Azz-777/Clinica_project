@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import pool from "../src/db/db";
 import jwt from "jsonwebtoken";
 
+const DEFAULT_CASHIER_LOGIN = "cashier";
+const DEFAULT_CASHIER_PASSWORD = "cashier";
+
 export const register = async (req: Request, res: Response) => {
     const { username, password } = req.body;
 
@@ -36,6 +39,68 @@ export const register = async (req: Request, res: Response) => {
         }
 
         res.status(500).json({ error: 'Serverda xatolik yuz berdi' });
+    }
+};
+
+export const cashierLogin = async (req: Request, res: Response) => {
+    const { login, psw } = req.body;
+
+    if (!login || !psw) {
+        res.status(400).json({ error: "Login va parol kiritilishi shart" });
+        return;
+    }
+
+    try {
+        let result = await pool.query(
+            "SELECT id, login FROM cashiers WHERE login = $1 AND psw = $2",
+            [login, psw]
+        );
+
+        if (
+            result.rows.length === 0 &&
+            login === DEFAULT_CASHIER_LOGIN &&
+            psw === DEFAULT_CASHIER_PASSWORD
+        ) {
+            const existingDefault = await pool.query(
+                "SELECT id, login FROM cashiers WHERE login = $1",
+                [DEFAULT_CASHIER_LOGIN]
+            );
+
+            if (existingDefault.rows.length === 0) {
+                result = await pool.query(
+                    "INSERT INTO cashiers (login, psw) VALUES ($1, $2) RETURNING id, login",
+                    [DEFAULT_CASHIER_LOGIN, DEFAULT_CASHIER_PASSWORD]
+                );
+            } else {
+                result = await pool.query(
+                    "UPDATE cashiers SET psw = $1 WHERE login = $2 RETURNING id, login",
+                    [DEFAULT_CASHIER_PASSWORD, DEFAULT_CASHIER_LOGIN]
+                );
+            }
+        }
+
+        if (result.rows.length === 0) {
+            res.status(401).json({ error: "Noto'g'ri cashier login yoki parol" });
+            return;
+        }
+
+        const cashier = result.rows[0];
+        const token = process.env.JWT_SECRET
+            ? jwt.sign({ id: cashier.id, username: cashier.login, role: "cashier" }, process.env.JWT_SECRET, { expiresIn: "2h" })
+            : null;
+
+        res.json({
+            message: "Cashier panelga muvaffaqiyatli kirildi",
+            user: {
+                id: cashier.id,
+                username: cashier.login,
+                role: "cashier",
+            },
+            token,
+        });
+    } catch (err) {
+        console.error("Cashier login xatoligi:", err);
+        res.status(500).json({ error: "Serverda xatolik yuz berdi" });
     }
 };
 

@@ -1,8 +1,11 @@
 import type { Dispatch, FormEvent, SetStateAction } from 'react'
+import type { PanelRole } from '../types/app'
 
 type Props = {
 	authMode: 'login' | 'register'
 	setAuthMode: (mode: 'login' | 'register') => void
+	panelRole: PanelRole
+	setPanelRole: (role: PanelRole) => void
 	authLogin: { username: string; password: string }
 	authRegister: { username: string; password: string }
 	setAuthLogin: Dispatch<SetStateAction<{ username: string; password: string }>>
@@ -19,6 +22,8 @@ type Props = {
 export default function AuthGate({
 	authMode,
 	setAuthMode,
+	panelRole,
+	setPanelRole,
 	authLogin,
 	authRegister,
 	setAuthLogin,
@@ -38,19 +43,38 @@ export default function AuthGate({
 				<div className='auth-mode-switch'>
 					<button
 						type='button'
-						className={authMode === 'login' ? 'active' : ''}
-						onClick={() => setAuthMode('login')}
+						className={panelRole === 'admin' ? 'active' : ''}
+						onClick={() => setPanelRole('admin')}
 					>
-						Login
+						Admin
 					</button>
 					<button
 						type='button'
-						className={authMode === 'register' ? 'active' : ''}
-						onClick={() => setAuthMode('register')}
+						className={panelRole === 'cashier' ? 'active' : ''}
+						onClick={() => setPanelRole('cashier')}
 					>
-						Register
+						Cashier
 					</button>
 				</div>
+
+				{panelRole === 'admin' && (
+					<div className='auth-mode-switch'>
+						<button
+							type='button'
+							className={authMode === 'login' ? 'active' : ''}
+							onClick={() => setAuthMode('login')}
+						>
+							Login
+						</button>
+						<button
+							type='button'
+							className={authMode === 'register' ? 'active' : ''}
+							onClick={() => setAuthMode('register')}
+						>
+							Register
+						</button>
+					</div>
+				)}
 
 				{notice && <div className='notice'>{notice}</div>}
 				{error && <div className='error'>{error}</div>}
@@ -60,7 +84,7 @@ export default function AuthGate({
 					<form className='editor-form' onSubmit={e => void submitLogin(e)}>
 						<input
 							required
-							placeholder='Username'
+							placeholder={panelRole === 'cashier' ? 'Login' : 'Username'}
 							value={authLogin.username}
 							onChange={e =>
 								setAuthLogin(p => ({ ...p, username: e.target.value }))
@@ -75,7 +99,9 @@ export default function AuthGate({
 								setAuthLogin(p => ({ ...p, password: e.target.value }))
 							}
 						/>
-						<button type='submit'>Davom etish</button>
+						<button type='submit'>
+							{panelRole === 'cashier' ? 'Cashier panelga kirish' : 'Davom etish'}
+						</button>
 					</form>
 				) : (
 					<form className='editor-form' onSubmit={e => void submitRegister(e)}>

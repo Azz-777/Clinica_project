@@ -1,15 +1,13 @@
-import type { FormEvent } from 'react'
+import type { Dispatch, FormEvent, SetStateAction } from 'react'
 
 type Props = {
 	authMode: 'login' | 'register'
 	setAuthMode: (mode: 'login' | 'register') => void
 	authLogin: { username: string; password: string }
 	authRegister: { username: string; password: string }
-	setAuthLogin: React.Dispatch<
-		React.SetStateAction<{ username: string; password: string }>
-	>
-	setAuthRegister: React.Dispatch<
-		React.SetStateAction<{ username: string; password: string }>
+	setAuthLogin: Dispatch<SetStateAction<{ username: string; password: string }>>
+	setAuthRegister: Dispatch<
+		SetStateAction<{ username: string; password: string }>
 	>
 	submitLogin: (e: FormEvent) => Promise<void>
 	submitRegister: (e: FormEvent) => Promise<void>

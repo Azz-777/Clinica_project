@@ -1,4 +1,4 @@
-import type { FormEvent } from 'react'
+import type { Dispatch, FormEvent, SetStateAction } from 'react'
 import type { Payment } from '../types/app'
 
 type PaymentForm = {
@@ -11,7 +11,7 @@ type PaymentForm = {
 
 type Props = {
 	paymentForm: PaymentForm
-	setPaymentForm: React.Dispatch<React.SetStateAction<PaymentForm>>
+	setPaymentForm: Dispatch<SetStateAction<PaymentForm>>
 	resetPaymentForm: () => void
 	submitPayment: (e: FormEvent) => Promise<void>
 	payments: Payment[]

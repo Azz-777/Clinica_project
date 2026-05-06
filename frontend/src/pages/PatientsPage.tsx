@@ -1,4 +1,4 @@
-import type { FormEvent } from 'react'
+import type { Dispatch, FormEvent, SetStateAction } from 'react'
 import type { Patient } from '../types/app'
 import { formatDate } from '../utils/date'
 
@@ -13,7 +13,7 @@ type PatientForm = {
 
 type Props = {
 	patientForm: PatientForm
-	setPatientForm: React.Dispatch<React.SetStateAction<PatientForm>>
+	setPatientForm: Dispatch<SetStateAction<PatientForm>>
 	resetPatientForm: () => void
 	submitPatient: (e: FormEvent) => Promise<void>
 	patients: Patient[]

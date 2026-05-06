@@ -1,10 +1,10 @@
-import type { FormEvent } from 'react'
+import type { Dispatch, FormEvent, SetStateAction } from 'react'
 import type { Doctor } from '../types/app'
 
 type Props = {
 	doctorForm: { id: number; name: string; psw: string }
-	setDoctorForm: React.Dispatch<
-		React.SetStateAction<{ id: number; name: string; psw: string }>
+	setDoctorForm: Dispatch<
+		SetStateAction<{ id: number; name: string; psw: string }>
 	>
 	resetDoctorForm: () => void
 	submitDoctor: (e: FormEvent) => Promise<void>

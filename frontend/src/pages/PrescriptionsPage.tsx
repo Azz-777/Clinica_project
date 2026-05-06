@@ -1,4 +1,4 @@
-import type { FormEvent } from 'react'
+import type { Dispatch, FormEvent, SetStateAction } from 'react'
 import type { Prescription } from '../types/app'
 
 type PrescriptionForm = {
@@ -10,7 +10,7 @@ type PrescriptionForm = {
 
 type Props = {
 	prescriptionForm: PrescriptionForm
-	setPrescriptionForm: React.Dispatch<React.SetStateAction<PrescriptionForm>>
+	setPrescriptionForm: Dispatch<SetStateAction<PrescriptionForm>>
 	resetPrescriptionForm: () => void
 	submitPrescription: (e: FormEvent) => Promise<void>
 	prescriptions: Prescription[]

@@ -11,6 +11,7 @@ type Tab =
 	| 'payments'
 	| 'reports'
 	| 'auth'
+	| 'register'
 
 type ApiEnvelope<T> = {
 	success: boolean
@@ -128,6 +129,7 @@ const formatDate = (value?: string | null) => {
 
 export default function App() {
 	const [activeTab, setActiveTab] = useState<Tab>('dashboard')
+	const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState('')
 	const [notice, setNotice] = useState('')
@@ -178,6 +180,7 @@ export default function App() {
 	})
 	const [authLogin, setAuthLogin] = useState({ username: '', password: '' })
 	const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
+	const isAuthenticated = currentUser !== null
 
 	const resetDoctorForm = () => setDoctorForm({ id: 0, name: '', psw: '' })
 	const resetPatientForm = () =>
@@ -281,8 +284,9 @@ export default function App() {
 	])
 
 	useEffect(() => {
+		if (!isAuthenticated) return
 		void Promise.resolve().then(() => runLoad(refreshActiveTab))
-	}, [activeTab, refreshActiveTab, runLoad])
+	}, [activeTab, isAuthenticated, refreshActiveTab, runLoad])
 
 	const showNotice = (message: string) => {
 		setNotice(message)
@@ -298,7 +302,8 @@ export default function App() {
 			prescriptions: 'Retseptlar',
 			payments: 'To‘lovlar',
 			reports: 'Hisobotlar',
-			auth: 'Auth',
+			auth: 'Login',
+			register: 'Register',
 		}),
 		[],
 	)
@@ -470,9 +475,9 @@ export default function App() {
 					body: JSON.stringify(authRegister),
 				},
 			)
-			setCurrentUser(response.user)
 			setAuthRegister({ username: '', password: '' })
 			showNotice(response.message)
+			setAuthMode('login')
 		})
 	}
 
@@ -489,14 +494,100 @@ export default function App() {
 			setCurrentUser(response.user)
 			setAuthLogin({ username: '', password: '' })
 			showNotice(response.message)
+			setActiveTab('dashboard')
 		})
+	}
+
+	const logout = () => {
+		setCurrentUser(null)
+		setAuthMode('login')
+		setActiveTab('dashboard')
+	}
+
+	if (!isAuthenticated) {
+		return (
+			<div className='auth-only-shell'>
+				<section className='auth-only-card'>
+					<h1>Clinica Care</h1>
+					<p>Tizimga kirish uchun login va parolingizni kiriting.</p>
+
+					<div className='auth-mode-switch'>
+						<button
+							type='button'
+							className={authMode === 'login' ? 'active' : ''}
+							onClick={() => setAuthMode('login')}
+						>
+							Login
+						</button>
+						<button
+							type='button'
+							className={authMode === 'register' ? 'active' : ''}
+							onClick={() => setAuthMode('register')}
+						>
+							Register
+						</button>
+					</div>
+
+					{notice && <div className='notice'>{notice}</div>}
+					{error && <div className='error'>{error}</div>}
+					{loading && <div className='loading'>Yuklanmoqda...</div>}
+
+					{authMode === 'login' ? (
+						<form className='editor-form' onSubmit={e => void submitLogin(e)}>
+							<input
+								required
+								placeholder='Username'
+								value={authLogin.username}
+								onChange={e =>
+									setAuthLogin(p => ({ ...p, username: e.target.value }))
+								}
+							/>
+							<input
+								required
+								type='password'
+								placeholder='Parol'
+								value={authLogin.password}
+								onChange={e =>
+									setAuthLogin(p => ({ ...p, password: e.target.value }))
+								}
+							/>
+							<button type='submit'>Davom etish</button>
+						</form>
+					) : (
+						<form
+							className='editor-form'
+							onSubmit={e => void submitRegister(e)}
+						>
+							<input
+								required
+								placeholder='Username'
+								value={authRegister.username}
+								onChange={e =>
+									setAuthRegister(p => ({ ...p, username: e.target.value }))
+								}
+							/>
+							<input
+								required
+								type='password'
+								placeholder='Parol'
+								value={authRegister.password}
+								onChange={e =>
+									setAuthRegister(p => ({ ...p, password: e.target.value }))
+								}
+							/>
+							<button type='submit'>Register</button>
+						</form>
+					)}
+				</section>
+			</div>
+		)
 	}
 
 	return (
 		<div className='app-shell'>
 			<aside className='left-panel'>
-				<h1>Clinica Admin</h1>
-				<p>Backend endpointlarga to‘liq ulanadigan frontend.</p>
+				<h1>Clinica Care</h1>
+				<p>Medikal boshqaruv paneli va bemor onboarding interfeysi.</p>
 				<nav>
 					{(Object.keys(tabLabel) as Tab[]).map(tab => (
 						<button
@@ -514,9 +605,17 @@ export default function App() {
 			<main className='content'>
 				<header className='content-head'>
 					<h2>{tabLabel[activeTab]}</h2>
-					<button type='button' onClick={() => void runLoad(refreshActiveTab)}>
-						Yangilash
-					</button>
+					<div className='header-actions'>
+						<button
+							type='button'
+							onClick={() => void runLoad(refreshActiveTab)}
+						>
+							Yangilash
+						</button>
+						<button type='button' onClick={logout}>
+							Chiqish
+						</button>
+					</div>
 				</header>
 
 				{notice && <div className='notice'>{notice}</div>}
@@ -1099,8 +1198,70 @@ export default function App() {
 
 				{activeTab === 'auth' && (
 					<section className='auth-grid'>
-						<article>
-							<h3>Ro‘yxatdan o‘tish</h3>
+						<article className='auth-cover'>
+							<h3>Xush kelibsiz</h3>
+							<p>
+								Bitta panelda klinika jarayonlari: qabul, retsept, to‘lov va
+								hisobot.
+							</p>
+							<button type='button' onClick={() => setActiveTab('register')}>
+								Akkaunt yaratish
+							</button>
+						</article>
+						<article className='auth-card'>
+							<h3>Login</h3>
+							<form className='editor-form' onSubmit={e => void submitLogin(e)}>
+								<input
+									required
+									placeholder='Username'
+									value={authLogin.username}
+									onChange={e =>
+										setAuthLogin(p => ({ ...p, username: e.target.value }))
+									}
+								/>
+								<input
+									required
+									type='password'
+									placeholder='Parol'
+									value={authLogin.password}
+									onChange={e =>
+										setAuthLogin(p => ({ ...p, password: e.target.value }))
+									}
+								/>
+								<button type='submit'>Login</button>
+							</form>
+							<p className='switch-note'>
+								Akkauntingiz yo‘qmi? Register bo‘limiga o‘ting.
+							</p>
+						</article>
+						<article className='auth-card'>
+							<h3>Current user</h3>
+							<p>
+								{currentUser
+									? `${currentUser.username} (#${currentUser.id})`
+									: 'Login qilinmagan'}
+							</p>
+						</article>
+					</section>
+				)}
+
+				{activeTab === 'register' && (
+					<section className='register-page'>
+						<div className='register-info'>
+							<span className='badge'>Patient Onboarding</span>
+							<h3>Clinica Care’ga tez ro‘yxatdan o‘ting</h3>
+							<p>
+								Yangi foydalanuvchini 1 daqiqada qo‘shing va darhol tizimga
+								kiriting.
+							</p>
+							<ul>
+								<li>Xavfsiz akkaunt ochish</li>
+								<li>Qabul bo‘limi bilan tez integratsiya</li>
+								<li>Admin dashboard bilan to‘liq boshqaruv</li>
+							</ul>
+						</div>
+						<div className='register-card'>
+							<h3>Create account</h3>
 							<form
 								className='editor-form'
 								onSubmit={e => void submitRegister(e)}
@@ -1124,38 +1285,10 @@ export default function App() {
 								/>
 								<button type='submit'>Register</button>
 							</form>
-						</article>
-						<article>
-							<h3>Login</h3>
-							<form className='editor-form' onSubmit={e => void submitLogin(e)}>
-								<input
-									required
-									placeholder='Username'
-									value={authLogin.username}
-									onChange={e =>
-										setAuthLogin(p => ({ ...p, username: e.target.value }))
-									}
-								/>
-								<input
-									required
-									type='password'
-									placeholder='Parol'
-									value={authLogin.password}
-									onChange={e =>
-										setAuthLogin(p => ({ ...p, password: e.target.value }))
-									}
-								/>
-								<button type='submit'>Login</button>
-							</form>
-						</article>
-						<article>
-							<h3>Current user</h3>
-							<p>
-								{currentUser
-									? `${currentUser.username} (#${currentUser.id})`
-									: 'Login qilinmagan'}
+							<p className='switch-note'>
+								Akkaunt bor bo‘lsa Login bo‘limidan kiring.
 							</p>
-						</article>
+						</div>
 					</section>
 				)}
 			</main>

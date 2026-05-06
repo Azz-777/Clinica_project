@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import pool from "../src/db/db";
+import jwt from "jsonwebtoken";
 
 export const register = async (req: Request, res: Response) => {
     const { username, password } = req.body;
@@ -15,9 +16,15 @@ export const register = async (req: Request, res: Response) => {
             [username, password]
         );
 
+        const user = result.rows[0];
+        const token = process.env.JWT_SECRET
+            ? jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '2h' })
+            : null;
+
         res.status(201).json({
             message: "Foydalanuvchi muvaffaqiyatli yaratildi",
-            user: result.rows[0]
+            user,
+            token,
         });
 
     } catch (err: any) {
@@ -51,9 +58,15 @@ export const login = async (req: Request, res: Response) => {
             return;
         }
 
+        const user = result.rows[0];
+        const token = process.env.JWT_SECRET
+            ? jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '2h' })
+            : null;
+
         res.json({
             message: "Muvaffaqiyatli login",
-            user: result.rows[0]
+            user,
+            token,
         });
 
     } catch (err) {

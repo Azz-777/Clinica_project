@@ -476,6 +476,9 @@ export default function App() {
 				},
 			)
 			setAuthRegister({ username: '', password: '' })
+			if ((response as any).token) {
+				localStorage.setItem('token', (response as any).token)
+			}
 			showNotice(response.message)
 			setAuthMode('login')
 		})
@@ -487,11 +490,16 @@ export default function App() {
 			const response = await apiRequest<{ message: string; user: AuthUser }>(
 				'/auth/login',
 				{
-					method: 'POST',
+					method: 'POST',DATABASE_URL=postgresql://klinika_8g6y_user:xIakLVJO7kV3ilY1qoMc8fBOFIUIjJrz@dpg-d7pjj90g4nts73b33rt0-a.frankfurt-postgres.render.com/klinika_8g6y
+JWT_SECRET=mysecretkey123
+PORT=3000
 					body: JSON.stringify(authLogin),
 				},
 			)
 			setCurrentUser(response.user)
+			if ((response as any).token) {
+				localStorage.setItem('token', (response as any).token)
+			}
 			setAuthLogin({ username: '', password: '' })
 			showNotice(response.message)
 			setActiveTab('dashboard')
@@ -500,6 +508,7 @@ export default function App() {
 
 	const logout = () => {
 		setCurrentUser(null)
+		localStorage.removeItem('token')
 		setAuthMode('login')
 		setActiveTab('dashboard')
 	}
